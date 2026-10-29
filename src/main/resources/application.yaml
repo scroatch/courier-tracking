@@ -1,5 +1,11 @@
 spring:
   application:
     name: courier-tracking
+  jpa:
+    hibernate:
+      ddl-auto: validate
 courier:
   stores-file: classpath:stores.json
+  distance:
+    strategy: KARNEY_WGS84
+

@@ -26,8 +26,7 @@ public class StoreLoader {
 
     private List<Store> load(ObjectMapper mapper, Resource file) {
         try (InputStream is = file.getInputStream()) {
-            List<Store> loaded = mapper.readValue(is, new TypeReference<>() {
-            });
+            List<Store> loaded = mapper.readValue(is, new TypeReference<>() {});
             if (loaded.isEmpty()) {
                 throw new IllegalStateException("No stores found in " + file);
             }

@@ -12,7 +12,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.within;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-public class StoreLoaderTest {
+class StoreLoaderTest {
 
     private final JsonMapper mapper = JsonMapper.builder().build();
 
