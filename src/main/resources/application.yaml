@@ -1,3 +1,5 @@
 spring:
   application:
     name: courier-tracking
+courier:
+  stores-file: classpath:stores.json
