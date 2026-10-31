@@ -1,21 +1,31 @@
 package com.huseyin.couriertracking.service;
 
+import com.huseyin.couriertracking.config.StoreLoader;
 import com.huseyin.couriertracking.distance.DistanceCalculator;
 import com.huseyin.couriertracking.dto.LocationRequestDTO;
 import com.huseyin.couriertracking.entity.Courier;
 import com.huseyin.couriertracking.entity.CourierLocation;
+import com.huseyin.couriertracking.entity.CourierStorePresence;
+import com.huseyin.couriertracking.entity.StoreEntrance;
+import com.huseyin.couriertracking.entrance.StoreEntranceDetector;
 import com.huseyin.couriertracking.exception.FutureTimeException;
+import com.huseyin.couriertracking.model.Store;
 import com.huseyin.couriertracking.repository.CourierLocationRepository;
 import com.huseyin.couriertracking.repository.CourierRepository;
-import org.springframework.transaction.annotation.Transactional;
+import com.huseyin.couriertracking.repository.CourierStorePresenceRepository;
+import com.huseyin.couriertracking.repository.StoreEntranceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toMap;
 
 @Slf4j
 @Service
@@ -26,8 +36,12 @@ public class LocationService {
 
     private final CourierRepository courierRepository;
     private final CourierLocationRepository courierLocationRepository;
+    private final CourierStorePresenceRepository presenceRepository;
+    private final StoreEntranceRepository entranceRepository;
     private final DistanceCalculator distanceCalculator;
     private final Clock clock;
+    private final StoreLoader storeLoader;
+    private final StoreEntranceDetector entranceDetector;
 
     @Transactional
     public void record(LocationRequestDTO request) {
@@ -63,6 +77,7 @@ public class LocationService {
         courierRepository.save(courier);
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, 0.0);
         courierLocationRepository.save(courierLocation);
+        updateStorePresence(courierLocation);
     }
 
     private boolean isDuplicate(LocationRequestDTO request) {
@@ -89,5 +104,33 @@ public class LocationService {
 
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, distanceDiff);
         courierLocationRepository.save(courierLocation);
+
+        updateStorePresence(courierLocation);
+    }
+
+    private void updateStorePresence(CourierLocation location) {
+        Map<String, CourierStorePresence> presences = presenceRepository.findByCourierId(location.getCourierId())
+                .stream()
+                .collect(toMap(CourierStorePresence::getStoreName, p -> p));
+
+        for (Store store : storeLoader.findAll()) {
+            double distance = distanceCalculator.calculateDistance(store.lat(), store.lng(), location.getLat(), location.getLng());
+            CourierStorePresence presence = presences.get(store.name());
+
+            switch (entranceDetector.detect(presence, distance, location.getRecordedAt())) {
+                case NONE -> {
+                }
+                case ENTRANCE -> {
+                    if (presence == null) {
+                        presenceRepository.save(new CourierStorePresence(location.getCourierId(), store.name()));
+                    } else {
+                        presence.enter();
+                    }
+                    entranceRepository.save(new StoreEntrance(location.getCourierId(), store.name(), location.getId(), location.getRecordedAt()));
+                }
+                case REENTRY_TOO_SOON -> presence.enter();
+                case EXIT -> presence.exit(location.getRecordedAt());
+            }
+        }
     }
 }
