@@ -1,7 +1,7 @@
 package com.huseyin.couriertracking.service;
 
 import com.huseyin.couriertracking.distance.DistanceCalculator;
-import com.huseyin.couriertracking.dto.LocationRequest;
+import com.huseyin.couriertracking.dto.LocationRequestDTO;
 import com.huseyin.couriertracking.entity.Courier;
 import com.huseyin.couriertracking.entity.CourierLocation;
 import com.huseyin.couriertracking.exception.FutureTimeException;
@@ -30,7 +30,7 @@ public class LocationService {
     private final Clock clock;
 
     @Transactional
-    public void record(LocationRequest request) {
+    public void record(LocationRequestDTO request) {
         Instant receivedAt = Instant.now(clock);
         rejectIfInFuture(request.time(), receivedAt);
 
@@ -58,28 +58,28 @@ public class LocationService {
         }
     }
 
-    private void startTracking(LocationRequest request, Instant receivedAt) {
+    private void startTracking(LocationRequestDTO request, Instant receivedAt) {
         Courier courier = new Courier(request.courierId(), request.lat(), request.lng(), request.time());
         courierRepository.save(courier);
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, 0.0);
         courierLocationRepository.save(courierLocation);
     }
 
-    private boolean isDuplicate(LocationRequest request) {
+    private boolean isDuplicate(LocationRequestDTO request) {
         return courierLocationRepository.existsByCourierIdAndRecordedAt(request.courierId(), request.time());
     }
 
-    private boolean isOutOfOrder(Courier courier, LocationRequest request) {
+    private boolean isOutOfOrder(Courier courier, LocationRequestDTO request) {
         return request.time().isBefore(courier.getLastRecordedAt());
     }
 
-    private void saveOutOfOrder(LocationRequest request, Instant receivedAt) {
+    private void saveOutOfOrder(LocationRequestDTO request, Instant receivedAt) {
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, true, null);
         courierLocationRepository.save(courierLocation);
         log.warn("Out of order location stored: courier={}, time={}", request.courierId(), request.time());
     }
 
-    private void moveCourier(Courier courier, LocationRequest request, Instant receivedAt) {
+    private void moveCourier(Courier courier, LocationRequestDTO request, Instant receivedAt) {
         double distanceDiff = distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
 
         courier.setLastLat(request.lat());
