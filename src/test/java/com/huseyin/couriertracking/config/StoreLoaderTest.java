@@ -19,7 +19,7 @@ class StoreLoaderTest {
     @Test
     void shouldLoadAllStoresFromJson() {
         var file = new ClassPathResource("stores.json");
-        
+
         StoreLoader loader = new StoreLoader(mapper, file);
         List<Store> stores = loader.findAll();
 

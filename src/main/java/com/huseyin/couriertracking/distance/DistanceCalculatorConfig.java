@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Slf4j
 @Configuration(proxyBeanMethods = false)
 @EnableConfigurationProperties(DistanceProperties.class)
- class DistanceCalculatorConfig {
+class DistanceCalculatorConfig {
 
     @Bean
     DistanceCalculator distanceCalculator(DistanceProperties properties) {
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
         log.info("Distance calculation strategy: {}", strategy);
         return switch (strategy) {
             case KARNEY_WGS84 -> new KarneyDistanceCalculator();
-            case HAVERSINE    -> new HaversineDistanceCalculator();
+            case HAVERSINE -> new HaversineDistanceCalculator();
         };
     }
 }

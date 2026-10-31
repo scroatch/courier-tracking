@@ -8,8 +8,8 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 class CourierTrackingApplicationTests {
 
-	@Test
-	void contextLoads() {
-	}
+    @Test
+    void contextLoads() {
+    }
 
 }

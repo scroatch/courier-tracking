@@ -1,12 +1,12 @@
 package com.huseyin.couriertracking.config;
 
 import com.huseyin.couriertracking.model.Store;
-import org.springframework.beans.factory.annotation.Value;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,7 +26,8 @@ public class StoreLoader {
 
     private List<Store> load(ObjectMapper mapper, Resource file) {
         try (InputStream is = file.getInputStream()) {
-            List<Store> loaded = mapper.readValue(is, new TypeReference<>() {});
+            List<Store> loaded = mapper.readValue(is, new TypeReference<>() {
+            });
             if (loaded.isEmpty()) {
                 throw new IllegalStateException("No stores found in " + file);
             }

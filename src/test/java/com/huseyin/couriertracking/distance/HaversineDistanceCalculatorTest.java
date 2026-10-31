@@ -13,7 +13,9 @@ class HaversineDistanceCalculatorTest {
     private static final double ONE_MILLIMETER = 0.001;
     private static final double R = HaversineDistanceCalculator.EARTH_RADIUS;
 
-    /** Büyük çember üzerinde 1 derecelik yay: */
+    /**
+     * Büyük çember üzerinde 1 derecelik yay:
+     */
     private static final double ONE_DEGREE_ARC = R * Math.PI / 180;
 
     // Ataşehir MMM Migros
