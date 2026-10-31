@@ -24,10 +24,10 @@ class StoreLoaderTest {
         List<Store> stores = loader.findAll();
 
         assertThat(stores).hasSize(5);
-        Store atasehir = stores.get(3);
-        assertThat(atasehir.name()).isEqualTo("Ortaköy MMM Migros");
-        assertThat(atasehir.lat()).isCloseTo(41.055783, within(1e-7));
-        assertThat(atasehir.lng()).isCloseTo(29.0210292, within(1e-7));
+        Store ortakoy = stores.get(3);
+        assertThat(ortakoy.name()).isEqualTo("Ortaköy MMM Migros");
+        assertThat(ortakoy.lat()).isCloseTo(41.055783, within(1e-7));
+        assertThat(ortakoy.lng()).isCloseTo(29.0210292, within(1e-7));
     }
 
     @Test
@@ -36,5 +36,14 @@ class StoreLoaderTest {
 
         assertThatThrownBy(() -> new StoreLoader(mapper, missing))
                 .isInstanceOf(UncheckedIOException.class);
+    }
+
+    @Test
+    void shouldFailFastWhenStoreNamesAreDuplicated() {
+        var duplicated = new ClassPathResource("stores-duplicate.json");
+
+        assertThatThrownBy(() -> new StoreLoader(mapper, duplicated))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Ataşehir MMM Migros");
     }
 }

@@ -11,7 +11,9 @@ import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @Component
@@ -31,9 +33,19 @@ public class StoreLoader {
             if (loaded.isEmpty()) {
                 throw new IllegalStateException("No stores found in " + file);
             }
+            rejectDuplicateNames(loaded, file);
             return List.copyOf(loaded);
         } catch (IOException e) {
             throw new UncheckedIOException("Could not read " + file, e);
+        }
+    }
+
+    private void rejectDuplicateNames(List<Store> stores, Resource file) {
+        Set<String> names = new HashSet<>();
+        for (Store store : stores) {
+            if (!names.add(store.name())) {
+                throw new IllegalStateException("Duplicate store name in " + file + ": " + store.name());
+            }
         }
     }
 
