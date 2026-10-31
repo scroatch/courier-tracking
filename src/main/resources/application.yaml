@@ -19,3 +19,8 @@ courier:
   entrance:
     radius-meters: 100
     reentry-interval: 60s
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics

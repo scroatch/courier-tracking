@@ -7,6 +7,7 @@ import com.huseyin.couriertracking.entity.Courier;
 import com.huseyin.couriertracking.entity.CourierLocation;
 import com.huseyin.couriertracking.entity.CourierStorePresence;
 import com.huseyin.couriertracking.entity.StoreEntrance;
+import com.huseyin.couriertracking.entrance.CourierEnteredStoreEvent;
 import com.huseyin.couriertracking.entrance.StoreEntranceDetector;
 import com.huseyin.couriertracking.exception.FutureTimeException;
 import com.huseyin.couriertracking.model.Store;
@@ -16,6 +17,7 @@ import com.huseyin.couriertracking.repository.CourierStorePresenceRepository;
 import com.huseyin.couriertracking.repository.StoreEntranceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,10 +40,12 @@ public class LocationService {
     private final CourierLocationRepository courierLocationRepository;
     private final CourierStorePresenceRepository presenceRepository;
     private final StoreEntranceRepository entranceRepository;
+
     private final DistanceCalculator distanceCalculator;
     private final Clock clock;
     private final StoreLoader storeLoader;
     private final StoreEntranceDetector entranceDetector;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public void record(LocationRequestDTO request) {
@@ -127,6 +131,7 @@ public class LocationService {
                         presence.enter();
                     }
                     entranceRepository.save(new StoreEntrance(location.getCourierId(), store.name(), location.getId(), location.getRecordedAt()));
+                    eventPublisher.publishEvent(new CourierEnteredStoreEvent(location.getCourierId(), store.name(), location.getRecordedAt()));
                 }
                 case REENTRY_TOO_SOON -> presence.enter();
                 case EXIT -> presence.exit(location.getRecordedAt());

@@ -4,6 +4,7 @@ import com.huseyin.couriertracking.dto.LocationRequestDTO;
 import com.huseyin.couriertracking.entity.Courier;
 import com.huseyin.couriertracking.entity.CourierLocation;
 import com.huseyin.couriertracking.entity.StoreEntrance;
+import com.huseyin.couriertracking.entrance.CourierEnteredStoreEvent;
 import com.huseyin.couriertracking.exception.FutureTimeException;
 import com.huseyin.couriertracking.repository.CourierLocationRepository;
 import com.huseyin.couriertracking.repository.CourierRepository;
@@ -17,6 +18,8 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
@@ -26,6 +29,7 @@ import java.time.ZoneOffset;
 
 import static org.assertj.core.api.Assertions.*;
 
+@RecordApplicationEvents
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
@@ -68,6 +72,9 @@ class LocationServiceTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private ApplicationEvents events;
 
     @Test
     void firstLocation_createsCourierWithZeroDistance() {
@@ -170,6 +177,11 @@ class LocationServiceTest {
         });
         assertThat(presenceRepository.findAll()).singleElement()
                 .satisfies(presence -> assertThat(presence.isInside()).isTrue());
+
+        assertThat(events.stream(CourierEnteredStoreEvent.class)).singleElement().satisfies(event -> {
+            assertThat(event.storeName()).isEqualTo(ATASEHIR);
+            assertThat(event.enteredAt()).isEqualTo(time);
+        });
     }
 
     @Test
@@ -183,6 +195,8 @@ class LocationServiceTest {
         assertThat(storeEntranceRepository.count()).isZero();
         assertThat(presenceRepository.count()).isZero();
         assertThat(courierLocationRepository.count()).isEqualTo(2);
+
+        assertThat(events.stream(CourierEnteredStoreEvent.class)).isEmpty();
     }
 
     @Test
@@ -207,6 +221,10 @@ class LocationServiceTest {
 
         assertThat(presenceRepository.findAll()).singleElement()
                 .satisfies(presence -> assertThat(presence.isInside()).isTrue());
+
+        assertThat(events.stream(CourierEnteredStoreEvent.class))
+                .extracting(CourierEnteredStoreEvent::enteredAt)
+                .containsExactly(base.plusSeconds(60), base.plusSeconds(570));
     }
 
     private LocationRequestDTO metersNorthOfAtasehir(double meters, Instant time) {
