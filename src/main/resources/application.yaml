@@ -21,3 +21,5 @@ management:
     web:
       exposure:
         include: health,metrics
+springdoc:
+  default-produces-media-type: application/json
