@@ -1,0 +1,25 @@
+services:
+  courier-tracking:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - courier-data:/app/data
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: 1g
+
+  k6:
+    image: grafana/k6:2.3.0
+    profiles: ["loadtest"]
+    environment:
+      BASE_URL: http://courier-tracking:8080
+    volumes:
+      - ./load-test:/scripts
+    depends_on:
+      - courier-tracking
+
+volumes:
+  courier-data:
