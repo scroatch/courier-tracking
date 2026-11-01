@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.data.domain.Persistable;
@@ -13,12 +12,10 @@ import java.time.Instant;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Courier implements Persistable<String> {
 
     @Id
-    @Setter(AccessLevel.NONE)
     private String id;
 
     private double lastLat;
@@ -28,15 +25,12 @@ public class Courier implements Persistable<String> {
 
     @CreationTimestamp
     @Column(updatable = false)
-    @Setter(AccessLevel.NONE)
     private Instant createdAt;
 
     @UpdateTimestamp
-    @Setter(AccessLevel.NONE)
     private Instant updatedAt;
 
     @Transient
-    @Setter(AccessLevel.NONE)
     private boolean isNew = true;
 
     public Courier(String id, double lastLat, double lastLng, Instant lastRecordedAt) {
@@ -45,6 +39,13 @@ public class Courier implements Persistable<String> {
         this.lastLng = lastLng;
         this.lastRecordedAt = lastRecordedAt;
         this.totalDistanceMeters = 0;
+    }
+
+    public void moveTo(double lat, double lng, Instant recordedAt, double segmentMeters) {
+        this.lastLat = lat;
+        this.lastLng = lng;
+        this.lastRecordedAt = recordedAt;
+        this.totalDistanceMeters += segmentMeters;
     }
 
     @Override

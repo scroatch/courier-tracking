@@ -32,7 +32,7 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class LocationRecorder {
+ class LocationRecorder {
 
     private static final Duration MAX_FUTURE_CLOCK = Duration.ofMinutes(5);
 
@@ -99,14 +99,10 @@ public class LocationRecorder {
     }
 
     private void moveCourier(Courier courier, LocationRequestDTO request, Instant receivedAt) {
-        double distanceDiff = distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
+        double segmentMeters = distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
+        courier.moveTo(request.lat(), request.lng(), request.time(), segmentMeters);
 
-        courier.setLastLat(request.lat());
-        courier.setLastLng(request.lng());
-        courier.setLastRecordedAt(request.time());
-        courier.setTotalDistanceMeters(distanceDiff + courier.getTotalDistanceMeters());
-
-        CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, distanceDiff);
+        CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, segmentMeters);
         courierLocationRepository.save(courierLocation);
 
         updateStorePresence(courierLocation);
