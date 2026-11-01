@@ -10,6 +10,7 @@ import com.huseyin.couriertracking.repository.CourierLocationRepository;
 import com.huseyin.couriertracking.repository.CourierRepository;
 import com.huseyin.couriertracking.repository.CourierStorePresenceRepository;
 import com.huseyin.couriertracking.repository.StoreEntranceRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,9 @@ class LocationServiceTest {
 
     @Autowired
     private ApplicationEvents events;
+
+    @Autowired
+    private MeterRegistry meterRegistry;
 
     @Test
     void firstLocation_createsCourierWithZeroDistance() {
@@ -310,6 +314,36 @@ class LocationServiceTest {
 
         assertThat(courierRepository.findById(COURIER_ID).orElseThrow().getTotalDistanceMeters())
                 .isCloseTo(88.0, within(0.5));
+    }
+
+    @Test
+    void gpsSpikeWhileWaiting_addsNoDistance() {
+        Instant base = NOW.minus(Duration.ofHours(1));
+        for (int s = 0; s <= 60; s++) {
+            locationService.record(metersNorthOfAtasehir(s % 2 == 0 ? 5 : -5, base.plusSeconds(s)));
+        }
+        locationService.record(metersNorthOfAtasehir(1500, base.plusSeconds(61)));
+        for (int s = 62; s <= 120; s++) {
+            locationService.record(metersNorthOfAtasehir(0, base.plusSeconds(s)));
+        }
+        flushAndClear();
+
+        assertThat(courierRepository.findById(COURIER_ID).orElseThrow().getTotalDistanceMeters()).isZero();
+    }
+
+    @Test
+    void gpsSpike_isCountedAsFiltered() {
+        double before = filteredCount("jump");
+        Instant base = NOW.minus(Duration.ofHours(1));
+        locationService.record(metersNorthOfAtasehir(0, base));
+        locationService.record(metersNorthOfAtasehir(30, base.plusSeconds(5)));
+        locationService.record(metersNorthOfAtasehir(1500, base.plusSeconds(10)));
+
+        assertThat(filteredCount("jump") - before).isEqualTo(1.0);
+    }
+
+    private double filteredCount(String reason) {
+        return meterRegistry.counter("courier.locations.filtered", "reason", reason).count();
     }
 
     private LocationRequestDTO metersNorthOfAtasehir(double meters, Instant time) {

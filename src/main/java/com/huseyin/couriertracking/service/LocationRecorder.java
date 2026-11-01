@@ -16,6 +16,7 @@ import com.huseyin.couriertracking.repository.CourierLocationRepository;
 import com.huseyin.couriertracking.repository.CourierRepository;
 import com.huseyin.couriertracking.repository.CourierStorePresenceRepository;
 import com.huseyin.couriertracking.repository.StoreEntranceRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -48,6 +49,7 @@ class LocationRecorder {
     private final StoreEntranceDetector entranceDetector;
     private final ApplicationEventPublisher eventPublisher;
     private final DistanceProperties distanceProperties;
+    private final MeterRegistry meterRegistry;
 
 
     @Transactional
@@ -64,6 +66,7 @@ class LocationRecorder {
         Courier courier = existing.get();
         if (isDuplicate(request)) {
             log.debug("Duplicate location ignored: courier={}, time={}", request.courierId(), request.time());
+            countFiltered("duplicate");
             return;
         }
         if (isOutOfOrder(courier, request)) {
@@ -98,7 +101,8 @@ class LocationRecorder {
     private void saveOutOfOrder(LocationRequestDTO request, Instant receivedAt) {
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, true, null);
         courierLocationRepository.save(courierLocation);
-        log.warn("Out of order location stored: courier={}, time={}", request.courierId(), request.time());
+        log.debug("Out of order location stored: courier={}, time={}", request.courierId(), request.time());
+        countFiltered("out_of_order");
     }
 
     private void moveCourier(Courier courier, LocationRequestDTO request, Instant receivedAt) {
@@ -142,19 +146,21 @@ class LocationRecorder {
         Duration gap = Duration.between(courier.getLastRecordedAt(), request.time());
         if (gap.compareTo(distanceProperties.maxGap()) > 0) {
             log.info("Gap of {} for courier {}, segment not counted", gap, request.courierId());
+            countFiltered("gap");
             courier.moveTo(request.lat(), request.lng(), request.time(), 0.0);
             return 0.0;
         }
 
         double meters = distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
         if (meters < distanceProperties.minMovementMeters()) {
-            courier.stayUntil(request.time());
+            courier.confirmPosition(request.time());
             return 0.0;
         }
 
         if (isImplausibleJump(courier, request.time(), meters)) {
-            log.info("Implausible jump of {} m for courier {}, segment not counted", Math.round(meters), request.courierId());
-            courier.stayUntil(request.time());
+            log.debug("Implausible jump of {} m for courier {}, segment not counted", Math.round(meters), request.courierId());
+            countFiltered("jump");
+            courier.skipLocation(request.time());
             return 0.0;
         }
 
@@ -162,9 +168,15 @@ class LocationRecorder {
         return meters;
     }
 
+    // The last confirmed location was within minMovementMeters of the reference point,
+    // so the courier has moved at least (meters - minMovementMeters) since then.
     private boolean isImplausibleJump(Courier courier, Instant time, double meters) {
-        long millis = Math.max(Duration.between(courier.getLastCountedAt(), time).toMillis(), 1000);
-        double kmh = meters / (millis / 1000.0) * 3.6;
+        long millis = Math.max(Duration.between(courier.getLastConfirmedAt(), time).toMillis(), 1000);
+        double kmh = (meters - distanceProperties.minMovementMeters()) / (millis / 1000.0) * 3.6;
         return kmh > distanceProperties.maxSpeedKmh();
+    }
+
+    private void countFiltered(String reason) {
+        meterRegistry.counter("courier.locations.filtered", "reason", reason).increment();
     }
 }
