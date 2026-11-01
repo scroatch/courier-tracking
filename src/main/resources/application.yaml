@@ -13,6 +13,7 @@ courier:
   stores-file: classpath:stores.json
   distance:
     strategy: KARNEY_WGS84
+    max-gap: 30m
   entrance:
     radius-meters: 100
     reentry-interval: 60s

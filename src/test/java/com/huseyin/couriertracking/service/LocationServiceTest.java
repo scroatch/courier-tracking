@@ -238,6 +238,28 @@ class LocationServiceTest {
         assertThat(courierLocationRepository.count()).isEqualTo(1);
     }
 
+    @Test
+    void locationAfterLongGap_doesNotAddDistance() {
+        locationService.record(request(ATASEHIR_LAT, ATASEHIR_LNG, NOW.minus(Duration.ofHours(10))));
+        locationService.record(request(NOVADA_LAT, NOVADA_LNG, NOW.minus(Duration.ofHours(1))));
+        flushAndClear();
+
+        Courier courier = courierRepository.findById(COURIER_ID).orElseThrow();
+        assertThat(courier.getTotalDistanceMeters()).isZero();
+        assertThat(courier.getLastLat()).isEqualTo(NOVADA_LAT);
+    }
+
+    @Test
+    void locationExactlyAtMaxGap_addsDistance() {
+        Instant first = NOW.minus(Duration.ofHours(1));
+        locationService.record(request(ATASEHIR_LAT, ATASEHIR_LNG, first));
+        locationService.record(request(NOVADA_LAT, NOVADA_LNG, first.plus(Duration.ofMinutes(30))));
+        flushAndClear();
+
+        assertThat(courierRepository.findById(COURIER_ID).orElseThrow().getTotalDistanceMeters())
+                .isCloseTo(982.305, within(0.001));
+    }
+
     private LocationRequestDTO metersNorthOfAtasehir(double meters, Instant time) {
         return request(ATASEHIR_LAT + meters / METERS_PER_DEGREE_LAT, ATASEHIR_LNG, time);
     }

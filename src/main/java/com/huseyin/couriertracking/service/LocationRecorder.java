@@ -2,6 +2,7 @@ package com.huseyin.couriertracking.service;
 
 import com.huseyin.couriertracking.config.StoreLoader;
 import com.huseyin.couriertracking.distance.DistanceCalculator;
+import com.huseyin.couriertracking.distance.DistanceProperties;
 import com.huseyin.couriertracking.dto.LocationRequestDTO;
 import com.huseyin.couriertracking.entity.Courier;
 import com.huseyin.couriertracking.entity.CourierLocation;
@@ -46,6 +47,8 @@ import static java.util.stream.Collectors.toMap;
     private final StoreLoader storeLoader;
     private final StoreEntranceDetector entranceDetector;
     private final ApplicationEventPublisher eventPublisher;
+    private final DistanceProperties distanceProperties;
+
 
     @Transactional
     public void record(LocationRequestDTO request) {
@@ -99,7 +102,7 @@ import static java.util.stream.Collectors.toMap;
     }
 
     private void moveCourier(Courier courier, LocationRequestDTO request, Instant receivedAt) {
-        double segmentMeters = distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
+        double segmentMeters = countedSegment(courier, request);
         courier.moveTo(request.lat(), request.lng(), request.time(), segmentMeters);
 
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, segmentMeters);
@@ -133,5 +136,14 @@ import static java.util.stream.Collectors.toMap;
                 case EXIT -> presence.exit(location.getRecordedAt());
             }
         }
+    }
+
+    private double countedSegment(Courier courier, LocationRequestDTO request) {
+        Duration gap = Duration.between(courier.getLastRecordedAt(), request.time());
+        if (gap.compareTo(distanceProperties.maxGap()) > 0) {
+            log.info("Gap of {} for courier {}, segment not counted", gap, request.courierId());
+            return 0.0;
+        }
+        return distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
     }
 }
