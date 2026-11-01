@@ -9,9 +9,6 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
-  h2:
-    console:
-      enabled: true
 courier:
   stores-file: classpath:stores.json
   distance:
