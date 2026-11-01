@@ -1,0 +1,63 @@
+
+
+  █ THRESHOLDS 
+
+    http_req_duration{rate:1000}
+    ✓ 'p(95)<200' p(95)=449.81µs
+
+    http_req_duration{rate:200}
+    ✓ 'p(95)<200' p(95)=1.06ms
+
+    http_req_duration{rate:2000}
+    ✓ 'p(95)<200' p(95)=924.49µs
+
+    http_req_duration{rate:500}
+    ✓ 'p(95)<200' p(95)=490.08µs
+
+    http_req_failed{rate:1000}
+    ✓ 'rate<0.001' rate=0.00%
+
+    http_req_failed{rate:200}
+    ✓ 'rate<0.001' rate=0.00%
+
+    http_req_failed{rate:2000}
+    ✓ 'rate<0.001' rate=0.00%
+
+    http_req_failed{rate:500}
+    ✓ 'rate<0.001' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 250000  892.892341/s
+    checks_succeeded...: 100.00% 250000 out of 250000
+    checks_failed......: 0.00%   0 out of 250000
+
+    ✓ location accepted
+
+    HTTP
+    http_req_duration..............: med=359.32µs p(90)=456.62µs p(95)=789.34µs p(99)=5.92ms  max=260.58ms
+      { expected_response:true }...: med=359.32µs p(90)=456.62µs p(95)=789.34µs p(99)=5.92ms  max=260.58ms
+      { rate:1000 }................: med=350.41µs p(90)=410.46µs p(95)=449.81µs p(99)=4.93ms  max=82.05ms 
+      { rate:200 }.................: med=512.55µs p(90)=867.21µs p(95)=1.06ms   p(99)=1.68ms  max=20.27ms 
+      { rate:2000 }................: med=358.35µs p(90)=427.79µs p(95)=924.49µs p(99)=11.02ms max=75.55ms 
+      { rate:500 }.................: med=363.73µs p(90)=436.48µs p(95)=490.08µs p(99)=2.6ms   max=86.14ms 
+    http_req_failed................: 0.00%  0 out of 250000
+      { rate:1000 }................: 0.00%  0 out of 60002
+      { rate:200 }.................: 0.00%  0 out of 12000
+      { rate:2000 }................: 0.00%  0 out of 119982
+      { rate:500 }.................: 0.00%  0 out of 30000
+    http_reqs......................: 250000 892.892341/s
+
+    EXECUTION
+    iteration_duration.............: med=439.72µs p(90)=551.96µs p(95)=904.35µs p(99)=6ms     max=261.67ms
+    iterations.....................: 250000 892.892341/s
+    vus............................: 3      min=0           max=123
+    vus_max........................: 200    min=200         max=200
+
+    NETWORK
+    data_received..................: 14 MB  48 kB/s
+    data_sent......................: 67 MB  239 kB/s
+
+
+

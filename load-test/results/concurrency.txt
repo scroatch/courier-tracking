@@ -1,0 +1,48 @@
+
+
+  █ THRESHOLDS 
+
+    checks{type:race}
+    ✓ 'rate==1' rate=100.00%
+
+    http_req_duration{scenario:hotCourier}
+    ✓ 'p(95)<500' p(95)=163.32ms
+
+    http_req_failed{scenario:firstLocationRace}
+    ✓ 'rate==0' rate=0.00%
+
+    http_req_failed{scenario:hotCourier}
+    ✓ 'rate==0' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 901     77.412535/s
+    checks_succeeded...: 100.00% 901 out of 901
+    checks_failed......: 0.00%   0 out of 901
+
+    ✓ location accepted
+    ✓ racing courier has exactly 1 entrance
+    ✓ hot courier exists
+
+    HTTP
+    http_req_duration..................: avg=241.25ms med=17.21ms p(90)=978.61ms p(95)=1.07s    p(99)=1.17s    max=1.2s   
+      { expected_response:true }.......: avg=241.25ms med=17.21ms p(90)=978.61ms p(95)=1.07s    p(99)=1.17s    max=1.2s   
+      { scenario:hotCourier }..........: avg=40.45ms  med=13.81ms p(90)=77.65ms  p(95)=163.32ms p(99)=428.56ms max=829.3ms
+    http_req_failed....................: 0.00%  0 out of 901
+      { scenario:firstLocationRace }...: 0.00%  0 out of 200
+      { scenario:hotCourier }..........: 0.00%  0 out of 600
+    http_reqs..........................: 901    77.412535/s
+
+    EXECUTION
+    iteration_duration.................: avg=276.09ms med=22.79ms p(90)=1.02s    p(95)=1.12s    p(99)=1.22s    max=1.22s  
+    iterations.........................: 800    68.73477/s
+    vus................................: 19     min=0        max=100
+    vus_max............................: 220    min=220      max=220
+
+    NETWORK
+    data_received......................: 62 kB  5.3 kB/s
+    data_sent..........................: 207 kB 18 kB/s
+
+
+

@@ -1,0 +1,46 @@
+
+
+  █ THRESHOLDS 
+
+    checks{type:entrances}
+    ✓ 'rate==1' rate=100.00%
+
+    http_req_duration{name:record}
+    ✓ 'p(95)<200' p(95)=3.77ms
+
+    http_req_failed{name:record}
+    ✓ 'rate<0.001' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 64388   212.874979/s
+    checks_succeeded...: 100.00% 64388 out of 64388
+    checks_failed......: 0.00%   0 out of 64388
+
+    ✓ location accepted
+    ✓ every courier has exactly 3 entrances
+
+    CUSTOM
+    courier_total_distance_m.......: min=3222.910259 avg=3466.507846 med=3455.79963 p(90)=3592.033921 p(95)=3617.517206 p(99)=3719.690334 max=3824.006126
+
+    HTTP
+    http_req_duration..............: min=156.42µs    avg=4.79ms      med=1.11ms     p(90)=2.49ms      p(95)=3.78ms      p(99)=8.73ms      max=1.24s      
+      { expected_response:true }...: min=156.42µs    avg=4.79ms      med=1.11ms     p(90)=2.49ms      p(95)=3.78ms      p(99)=8.73ms      max=1.24s      
+      { name:record }..............: min=156.42µs    avg=4.78ms      med=1.11ms     p(90)=2.5ms       p(95)=3.77ms      p(99)=8.63ms      max=1.24s      
+    http_req_failed................: 0.00%  0 out of 64588
+      { name:record }..............: 0.00%  0 out of 64188
+    http_reqs......................: 64588  213.536204/s
+
+    EXECUTION
+    iteration_duration.............: min=1s          avg=1s          med=1s         p(90)=1s          p(95)=1s          p(99)=1.01s       max=2.26s      
+    iterations.....................: 60000  198.367688/s
+    vus............................: 24     min=24         max=200
+    vus_max........................: 200    min=200        max=200
+
+    NETWORK
+    data_received..................: 3.6 MB 12 kB/s
+    data_sent......................: 17 MB  57 kB/s
+
+
+

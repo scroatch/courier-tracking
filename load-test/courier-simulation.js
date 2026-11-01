@@ -1,5 +1,6 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { Trend } from 'k6/metrics';
 
 const BASE_URL = __ENV.BASE_URL || 'http://host.docker.internal:8080';
 
@@ -26,6 +27,9 @@ const STORES = [
     { lat: 40.9632463, lng: 29.0630908 }, // Caddebostan MMM
 ];
 
+// Measured, not asserted: steps 0..299 at 10 m/s give a real path of 299 * 10 = 2990 m
+const totalDistance = new Trend('courier_total_distance_m');
+
 export const options = {
     scenarios: {
         couriers: {
@@ -40,7 +44,7 @@ export const options = {
         'http_req_duration{name:record}': ['p(95)<200'],
         'checks{type:entrances}': ['rate==1'],
     },
-    summaryTrendStats: ['avg', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
+    summaryTrendStats: ['min', 'avg', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
 };
 
 export function setup() {
@@ -67,15 +71,24 @@ export default function (data) {
 
 export function teardown(data) {
     for (let first = 1; first <= COURIERS; first += 50) {
-        const requests = [];
+        const entranceRequests = [];
+        const distanceRequests = [];
         for (let vu = first; vu < first + 50 && vu <= COURIERS; vu++) {
-            requests.push(['GET', `${BASE_URL}/api/v1/couriers/${data.runId}-c${vu}/entrances?limit=10`,
-                null, { tags: { name: 'verify' } }]);
+            const courierUrl = `${BASE_URL}/api/v1/couriers/${data.runId}-c${vu}`;
+            entranceRequests.push(['GET', `${courierUrl}/entrances?limit=10`, null, { tags: { name: 'verify' } }]);
+            distanceRequests.push(['GET', `${courierUrl}/total-distance`, null, { tags: { name: 'verify' } }]);
         }
-        for (const res of http.batch(requests)) {
+
+        for (const res of http.batch(entranceRequests)) {
             check(res, {
                 'every courier has exactly 3 entrances': (r) => r.status === 200 && r.json().length === EXPECTED_ENTRANCES,
             }, { type: 'entrances' });
+        }
+
+        for (const res of http.batch(distanceRequests)) {
+            if (res.status === 200) {
+                totalDistance.add(res.json().totalDistanceMeters);
+            }
         }
     }
 }
