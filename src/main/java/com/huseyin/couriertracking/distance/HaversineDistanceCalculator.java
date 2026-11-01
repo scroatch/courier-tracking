@@ -1,6 +1,6 @@
 package com.huseyin.couriertracking.distance;
 
-public class HaversineDistanceCalculator implements DistanceCalculator {
+class HaversineDistanceCalculator implements DistanceCalculator {
 
     static final double EARTH_RADIUS = 6371008.8;
 
@@ -20,6 +20,7 @@ public class HaversineDistanceCalculator implements DistanceCalculator {
     }
 
     double haversine(double val) {
+
         return Math.pow(Math.sin(val / 2), 2);
     }
 }
