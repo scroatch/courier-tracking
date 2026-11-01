@@ -1,6 +1,7 @@
 package com.huseyin.couriertracking.distance;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
@@ -12,5 +13,6 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "courier.distance")
 public record DistanceProperties(@DefaultValue("KARNEY_WGS84") @NotNull DistanceStrategy strategy,
                                  @DefaultValue("30m") @NotNull Duration maxGap,
-                                 @DefaultValue("25") @PositiveOrZero double minMovementMeters) {
+                                 @DefaultValue("25") @PositiveOrZero double minMovementMeters,
+                                 @DefaultValue("150") @Positive double maxSpeedKmh) {
 }

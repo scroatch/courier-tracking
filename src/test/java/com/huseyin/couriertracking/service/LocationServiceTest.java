@@ -287,6 +287,31 @@ class LocationServiceTest {
                 .isCloseTo(60.0, within(0.5));
     }
 
+    @Test
+    void gpsSpike_addsNoDistance() {
+        Instant base = NOW.minus(Duration.ofHours(1));
+        locationService.record(metersNorthOfAtasehir(0, base));
+        locationService.record(metersNorthOfAtasehir(30, base.plusSeconds(5)));
+        locationService.record(metersNorthOfAtasehir(1500, base.plusSeconds(10)));
+        locationService.record(metersNorthOfAtasehir(60, base.plusSeconds(15)));
+        flushAndClear();
+
+        assertThat(courierRepository.findById(COURIER_ID).orElseThrow().getTotalDistanceMeters())
+                .isCloseTo(60.0, within(0.5));
+    }
+
+    @Test
+    void fastCourier_isNotMistakenForSpike() {
+        Instant base = NOW.minus(Duration.ofHours(1));
+        for (int step = 0; step <= 5; step++) {
+            locationService.record(metersNorthOfAtasehir(step * 22, base.plusSeconds(step)));
+        }
+        flushAndClear();
+
+        assertThat(courierRepository.findById(COURIER_ID).orElseThrow().getTotalDistanceMeters())
+                .isCloseTo(88.0, within(0.5));
+    }
+
     private LocationRequestDTO metersNorthOfAtasehir(double meters, Instant time) {
         return request(ATASEHIR_LAT + meters / METERS_PER_DEGREE_LAT, ATASEHIR_LNG, time);
     }

@@ -152,7 +152,19 @@ class LocationRecorder {
             return 0.0;
         }
 
+        if (isImplausibleJump(courier, request.time(), meters)) {
+            log.info("Implausible jump of {} m for courier {}, segment not counted", Math.round(meters), request.courierId());
+            courier.stayUntil(request.time());
+            return 0.0;
+        }
+
         courier.moveTo(request.lat(), request.lng(), request.time(), meters);
         return meters;
+    }
+
+    private boolean isImplausibleJump(Courier courier, Instant time, double meters) {
+        long millis = Math.max(Duration.between(courier.getLastCountedAt(), time).toMillis(), 1000);
+        double kmh = meters / (millis / 1000.0) * 3.6;
+        return kmh > distanceProperties.maxSpeedKmh();
     }
 }
