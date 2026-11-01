@@ -227,6 +227,17 @@ class LocationServiceTest {
                 .containsExactly(base.plusSeconds(60), base.plusSeconds(570));
     }
 
+    @Test
+    void duplicateWithNanosecondPrecision_isIgnored() {
+        Instant time = NOW.minusSeconds(60).plusNanos(123_456_789);
+
+        locationService.record(request(ATASEHIR_LAT, ATASEHIR_LNG, time));
+        locationService.record(request(ATASEHIR_LAT, ATASEHIR_LNG, time));
+        flushAndClear();
+
+        assertThat(courierLocationRepository.count()).isEqualTo(1);
+    }
+
     private LocationRequestDTO metersNorthOfAtasehir(double meters, Instant time) {
         return request(ATASEHIR_LAT + meters / METERS_PER_DEGREE_LAT, ATASEHIR_LNG, time);
     }
