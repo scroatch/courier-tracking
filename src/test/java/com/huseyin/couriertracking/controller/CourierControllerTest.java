@@ -100,4 +100,15 @@ class CourierControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
     }
+
+    @Test
+    void unexpectedError_returnsProblemDetailWithoutInternals() throws Exception {
+        given(courierQueryService.getTotalTravelDistance("courier-1"))
+                .willThrow(new IllegalStateException("connection pool exhausted"));
+
+        mockMvc.perform(get("/api/v1/couriers/courier-1/total-distance"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.status").value(500))
+                .andExpect(jsonPath("$.detail").value("Unexpected error"));
+    }
 }

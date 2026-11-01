@@ -2,6 +2,7 @@ package com.huseyin.couriertracking.config;
 
 import com.huseyin.couriertracking.exception.CourierNotFoundException;
 import com.huseyin.couriertracking.exception.FutureTimeException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,6 +13,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -33,5 +35,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
         problem.setProperty("errors", errors);
         return ResponseEntity.badRequest().body(problem);
+    }
+
+    @ExceptionHandler(Exception.class)
+    ProblemDetail handleUnexpected(Exception ex) {
+        log.error("Unexpected error", ex);
+        return ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected error");
     }
 }
