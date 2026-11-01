@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.time.Instant;
 
@@ -45,6 +46,9 @@ class StoreEntranceEventIntegrationTest {
     @Autowired
     private CourierRepository courierRepository;
 
+    @Autowired
+    private TransactionTemplate transactionTemplate;
+
 
     @AfterEach
     void cleanUp() {
@@ -61,6 +65,19 @@ class StoreEntranceEventIntegrationTest {
         locationService.record(new LocationRequestDTO(COURIER_ID, ATASEHIR_LAT, ATASEHIR_LNG, Instant.now().minusSeconds(10)));
 
         assertThat(currentCount() - before).isEqualTo(1);
+    }
+
+    @Test
+    void rolledBackEntrance_isNotCounted() {
+        double before = currentCount();
+
+        transactionTemplate.executeWithoutResult(status -> {
+            locationService.record(new LocationRequestDTO(COURIER_ID, ATASEHIR_LAT, ATASEHIR_LNG, Instant.now().minusSeconds(10)));
+            status.setRollbackOnly();
+        });
+
+        assertThat(currentCount() - before).isZero();
+        assertThat(storeEntranceRepository.count()).isZero();
     }
 
     private double currentCount() {

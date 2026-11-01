@@ -101,7 +101,7 @@ class LocationServiceConcurrencyTest {
         List<Future<?>> futures = new ArrayList<>();
         try {
             for (int i = 1; i <= threads; i++) {
-                double lat = OUTSIDE_LAT + i * 0.001; // ~111 m apart
+                double lat = OUTSIDE_LAT + i * 0.0003; // ~33 m apart: above the jitter threshold, below the jump speed
                 Instant time = firstTime.plusSeconds(i);
                 futures.add(executor.submit(() -> {
                     start.await();
@@ -127,5 +127,6 @@ class LocationServiceConcurrencyTest {
         assertThat(locations).hasSize(threads + 1);
         assertThat(courier.getTotalDistanceMeters()).isCloseTo(acceptedSegments, within(1e-6));
         assertThat(courier.getLastRecordedAt()).isEqualTo(firstTime.plusSeconds(threads));
+        assertThat(courier.getTotalDistanceMeters()).isPositive();
     }
 }
