@@ -260,6 +260,33 @@ class LocationServiceTest {
                 .isCloseTo(982.305, within(0.001));
     }
 
+    @Test
+    void stationaryJitter_addsNoDistance() {
+        Instant base = NOW.minus(Duration.ofHours(1));
+        locationService.record(metersNorthOfAtasehir(0, base));
+        locationService.record(metersNorthOfAtasehir(8, base.plusSeconds(5)));
+        locationService.record(metersNorthOfAtasehir(-7, base.plusSeconds(10)));
+        locationService.record(metersNorthOfAtasehir(12, base.plusSeconds(15)));
+        locationService.record(metersNorthOfAtasehir(-10, base.plusSeconds(20)));
+        flushAndClear();
+
+        Courier courier = courierRepository.findById(COURIER_ID).orElseThrow();
+        assertThat(courier.getTotalDistanceMeters()).isZero();
+        assertThat(courier.getLastRecordedAt()).isEqualTo(base.plusSeconds(20));
+    }
+
+    @Test
+    void slowMovement_isCountedOnceThresholdIsCrossed() {
+        Instant base = NOW.minus(Duration.ofHours(1));
+        for (int step = 0; step <= 6; step++) {
+            locationService.record(metersNorthOfAtasehir(step * 10, base.plusSeconds(step)));
+        }
+        flushAndClear();
+
+        assertThat(courierRepository.findById(COURIER_ID).orElseThrow().getTotalDistanceMeters())
+                .isCloseTo(60.0, within(0.5));
+    }
+
     private LocationRequestDTO metersNorthOfAtasehir(double meters, Instant time) {
         return request(ATASEHIR_LAT + meters / METERS_PER_DEGREE_LAT, ATASEHIR_LNG, time);
     }

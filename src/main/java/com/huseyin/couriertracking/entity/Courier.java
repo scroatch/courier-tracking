@@ -18,6 +18,7 @@ public class Courier implements Persistable<String> {
     @Id
     private String id;
 
+    // last counted position: GPS jitter around it is not counted as distance
     private double lastLat;
     private double lastLng;
     private Instant lastRecordedAt;
@@ -46,6 +47,10 @@ public class Courier implements Persistable<String> {
         this.lastLng = lng;
         this.lastRecordedAt = recordedAt;
         this.totalDistanceMeters += segmentMeters;
+    }
+
+    public void stayUntil(Instant recordedAt) {
+        this.lastRecordedAt = recordedAt;
     }
 
     @Override

@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
- class LocationRecorder {
+class LocationRecorder {
 
     private static final Duration MAX_FUTURE_CLOCK = Duration.ofMinutes(5);
 
@@ -102,8 +102,7 @@ import static java.util.stream.Collectors.toMap;
     }
 
     private void moveCourier(Courier courier, LocationRequestDTO request, Instant receivedAt) {
-        double segmentMeters = countedSegment(courier, request);
-        courier.moveTo(request.lat(), request.lng(), request.time(), segmentMeters);
+        double segmentMeters = advance(courier, request);
 
         CourierLocation courierLocation = new CourierLocation(request.courierId(), request.lat(), request.lng(), request.time(), receivedAt, false, segmentMeters);
         courierLocationRepository.save(courierLocation);
@@ -138,12 +137,22 @@ import static java.util.stream.Collectors.toMap;
         }
     }
 
-    private double countedSegment(Courier courier, LocationRequestDTO request) {
+
+    private double advance(Courier courier, LocationRequestDTO request) {
         Duration gap = Duration.between(courier.getLastRecordedAt(), request.time());
         if (gap.compareTo(distanceProperties.maxGap()) > 0) {
             log.info("Gap of {} for courier {}, segment not counted", gap, request.courierId());
+            courier.moveTo(request.lat(), request.lng(), request.time(), 0.0);
             return 0.0;
         }
-        return distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
+
+        double meters = distanceCalculator.calculateDistance(courier.getLastLat(), courier.getLastLng(), request.lat(), request.lng());
+        if (meters < distanceProperties.minMovementMeters()) {
+            courier.stayUntil(request.time());
+            return 0.0;
+        }
+
+        courier.moveTo(request.lat(), request.lng(), request.time(), meters);
+        return meters;
     }
 }

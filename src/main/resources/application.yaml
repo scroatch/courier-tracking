@@ -14,6 +14,7 @@ courier:
   distance:
     strategy: KARNEY_WGS84
     max-gap: 30m
+    min-movement-meters: 25
   entrance:
     radius-meters: 100
     reentry-interval: 60s
