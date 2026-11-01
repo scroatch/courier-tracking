@@ -17,7 +17,7 @@ class StoreEntranceMetricsListenerTest {
     private final StoreEntranceMetricsListener listener = new StoreEntranceMetricsListener(registry);
 
     @Test
-    void countsEntrancesPerStore() {
+    void entrances_areCountedPerStore() {
         listener.onEntrance(new CourierEnteredStoreEvent("courier-1", ATASEHIR, T0));
         listener.onEntrance(new CourierEnteredStoreEvent("courier-2", ATASEHIR, T0));
         listener.onEntrance(new CourierEnteredStoreEvent("courier-1", NOVADA, T0));

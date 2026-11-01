@@ -29,7 +29,7 @@ class LocationControllerTest {
     private LocationService locationService;
 
     @Test
-    void validRequest() throws Exception {
+    void validRequest_returnsNoContent() throws Exception {
         send("""
                 {"courierId": "courier-1", "lat": 40.9923307, "lng": 29.1244229, "time": "2026-10-31T12:00:00Z"}
                 """)
@@ -39,7 +39,7 @@ class LocationControllerTest {
     }
 
     @Test
-    void missingLat() throws Exception {
+    void missingLat_returnsBadRequest() throws Exception {
         send("""
                 {"courierId": "courier-1", "lng": 29.1244229, "time": "2026-10-31T12:00:00Z"}
                 """)
@@ -50,7 +50,7 @@ class LocationControllerTest {
     }
 
     @Test
-    void latOutOfRange() throws Exception {
+    void latOutOfRange_returnsBadRequest() throws Exception {
         send("""
                 {"courierId": "courier-1", "lat": 95, "lng": 29.1244229, "time": "2026-10-31T12:00:00Z"}
                 """)
@@ -61,7 +61,7 @@ class LocationControllerTest {
     }
 
     @Test
-    void blankCourierId() throws Exception {
+    void blankCourierId_returnsBadRequest() throws Exception {
         send("""
                 {"courierId": "", "lat": 40.9923307, "lng": 29.1244229, "time": "2026-10-31T12:00:00Z"}
                 """)
@@ -72,7 +72,7 @@ class LocationControllerTest {
     }
 
     @Test
-    void malformedJson() throws Exception {
+    void malformedJson_returnsBadRequest() throws Exception {
         send("{\"courierId\": \"courier-1\", \"lat\": ")
                 .andExpect(status().isBadRequest());
 
@@ -80,7 +80,7 @@ class LocationControllerTest {
     }
 
     @Test
-    void futureTime() throws Exception {
+    void futureTime_returnsBadRequest() throws Exception {
         doThrow(new FutureTimeException(Instant.parse("2026-10-31T13:00:00Z"), Instant.parse("2026-10-31T12:00:00Z")))
                 .when(locationService).record(any());
 

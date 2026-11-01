@@ -29,7 +29,7 @@ class CourierControllerTest {
     private CourierQueryService courierQueryService;
 
     @Test
-    void existingCourierTotalDistance() throws Exception {
+    void totalDistanceForExistingCourier_returnsMeters() throws Exception {
         given(courierQueryService.getTotalTravelDistance("courier-1")).willReturn(982.305);
 
         mockMvc.perform(get("/api/v1/couriers/courier-1/total-distance"))
@@ -39,7 +39,7 @@ class CourierControllerTest {
     }
 
     @Test
-    void unknownCourier() throws Exception {
+    void totalDistanceForUnknownCourier_returnsNotFound() throws Exception {
         given(courierQueryService.getTotalTravelDistance("unknown"))
                 .willThrow(new CourierNotFoundException("unknown"));
 
@@ -49,7 +49,7 @@ class CourierControllerTest {
     }
 
     @Test
-    void entrancesReturnsList() throws Exception{
+    void entrances_returnsList() throws Exception{
         given(courierQueryService.getEntrances("courier-1" , 50))
                 .willReturn(List.of(
                         new EntranceResponseDTO("Ataşehir MMM Migros", Instant.parse("2026-10-31T11:09:30Z")),
@@ -64,7 +64,7 @@ class CourierControllerTest {
     }
 
     @Test
-    void entrancesUsesDefaultLimit() throws Exception {
+    void entrancesWithoutLimit_usesDefault() throws Exception {
         given(courierQueryService.getEntrances("courier-1", 50)).willReturn(List.of());
 
         mockMvc.perform(get("/api/v1/couriers/courier-1/entrances"))
@@ -74,7 +74,7 @@ class CourierControllerTest {
     }
 
     @Test
-    void entrancesLimitBelowMinimum() throws Exception {
+    void entrancesLimitBelowMinimum_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/v1/couriers/courier-1/entrances").param("limit", "0"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
@@ -83,7 +83,7 @@ class CourierControllerTest {
     }
 
     @Test
-    void entrancesLimitAboveMaximum() throws Exception {
+    void entrancesLimitAboveMaximum_returnsBadRequest() throws Exception {
         mockMvc.perform(get("/api/v1/couriers/courier-1/entrances").param("limit", "501"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.status").value(400));
@@ -92,7 +92,7 @@ class CourierControllerTest {
     }
 
     @Test
-    void entrancesUnknownCourier() throws Exception {
+    void entrancesForUnknownCourier_returnsNotFound() throws Exception {
         given(courierQueryService.getEntrances("unknown", 50))
                 .willThrow(new CourierNotFoundException("unknown"));
 

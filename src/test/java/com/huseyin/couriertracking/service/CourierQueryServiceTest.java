@@ -49,7 +49,7 @@ class CourierQueryServiceTest {
     private LocationService locationService;
 
     @Test
-    void entrancesNewestFirstAndLimited() {
+    void entrances_areNewestFirstAndLimited() {
         Instant base = NOW.minus(Duration.ofHours(1));
         locationService.record(metersNorthOfAtasehir(500, base));                  // +0:00 outside
         locationService.record(metersNorthOfAtasehir(50, base.plusSeconds(60)));   // +1:00 first entrance
@@ -67,7 +67,7 @@ class CourierQueryServiceTest {
     }
 
     @Test
-    void entrancesUnknownCourierThrowsNotFound() {
+    void entrancesForUnknownCourier_throwsNotFound() {
         assertThatThrownBy(() -> courierQueryService.getEntrances("unknown", 10))
                 .isInstanceOf(CourierNotFoundException.class);
     }

@@ -1,6 +1,5 @@
 package com.huseyin.couriertracking.distance;
 
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
@@ -20,7 +19,6 @@ class DistanceModelConsistencyTest {
             "41.0066851, 28.6552262, 41.055783,  29.0210292",   // Beylikdüzü - Ortaköy
             "41.055783,  29.0210292, 40.9632463, 29.0630908"    // Ortaköy - Caddebostan
     })
-    @DisplayName("Model arasındaki fark %0.5'in altındadır")
     void sphericalAndEllipsoidalModels_agreeWithinHalfPercent(double lat1, double lng1, double lat2, double lng2) {
         double spherical = haversine.calculateDistance(lat1, lng1, lat2, lng2);
         double ellipsoidal = karney.calculateDistance(lat1, lng1, lat2, lng2);

@@ -55,7 +55,7 @@ class StoreEntranceEventIntegrationTest {
     }
 
     @Test
-    void entranceIsCountedAfterCommit() {
+    void committedEntrance_incrementsCounter() {
         double before = currentCount();
 
         locationService.record(new LocationRequestDTO(COURIER_ID, ATASEHIR_LAT, ATASEHIR_LNG, Instant.now().minusSeconds(10)));

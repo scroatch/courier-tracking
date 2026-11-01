@@ -43,7 +43,7 @@ class LocationServiceTest {
     private static final double ATASEHIR_LNG = 29.1244229;
     private static final double NOVADA_LAT = 40.986106;
     private static final double NOVADA_LNG = 29.1161293;
-    private static final double METERS_PER_DEGREE_LAT = 111_320.0;
+    private static final double METERS_PER_DEGREE_LAT = 111_320.0;          // approximation; test points stay far from the 100 m boundary
 
 
     @TestConfiguration

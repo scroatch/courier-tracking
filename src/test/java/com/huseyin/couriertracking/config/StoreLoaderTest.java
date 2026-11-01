@@ -17,7 +17,7 @@ class StoreLoaderTest {
     private final JsonMapper mapper = JsonMapper.builder().build();
 
     @Test
-    void shouldLoadAllStoresFromJson() {
+    void validFile_loadsAllStores() {
         var file = new ClassPathResource("stores.json");
 
         StoreLoader loader = new StoreLoader(mapper, file);
@@ -31,7 +31,7 @@ class StoreLoaderTest {
     }
 
     @Test
-    void shouldFailFastWhenFileIsMissing() {
+    void missingFile_failsFast() {
         var missing = new ClassPathResource("findMe.json");
 
         assertThatThrownBy(() -> new StoreLoader(mapper, missing))
@@ -39,7 +39,7 @@ class StoreLoaderTest {
     }
 
     @Test
-    void shouldFailFastWhenStoreNamesAreDuplicated() {
+    void duplicateStoreNames_failFast() {
         var duplicated = new ClassPathResource("stores-duplicate.json");
 
         assertThatThrownBy(() -> new StoreLoader(mapper, duplicated))
