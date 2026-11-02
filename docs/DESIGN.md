@@ -223,8 +223,10 @@ docker compose up -d --build courier-tracking
 docker compose run --rm k6 run /scripts/courier-simulation.js   # or concurrency.js, stress.js
 ```
 
-In Git Bash on Windows, run `export MSYS_NO_PATHCONV=1` first, or Git Bash rewrites
-`/scripts/...` into a Windows path.
+In Git Bash on Windows, put `MSYS_NO_PATHCONV=1` in front of the k6 command
+(`MSYS_NO_PATHCONV=1 docker compose run --rm k6 run /scripts/...`), or Git Bash rewrites
+`/scripts/...` into a Windows path. Do not export it for the whole shell: `./mvnw` relies on
+Git Bash translating its temporary download path and fails with it.
 
 The app was limited to 2 CPUs and 1 GB by `docker-compose.yml`, on my laptop (Windows,
 Docker Desktop), with H2 in file mode and k6 2.3.0. Raw outputs are in `load-test/results/`.
